@@ -11,9 +11,7 @@ import javax.mail.internet.MimeMessage;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
@@ -30,7 +28,7 @@ public class LicenceManagement {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
-      //  options.addArguments("headless");
+        //  options.addArguments("headless");
 
         driver = new ChromeDriver(options);
         driver.manage().window().maximize();
@@ -55,7 +53,7 @@ public class LicenceManagement {
         }
     }
 
-    @Test
+    @Test(priority = 1)
     public void executePopUpOrLicence() {
         if (isPopUpPresent()) {
             popUp();
@@ -95,6 +93,9 @@ public class LicenceManagement {
             WebElement expiryElement = driver.findElement(By.xpath("//div[3]/div[2]"));
             String text = expiryElement.getText();
             System.out.println(text);
+
+            // Schedule email reminders
+            checkAndScheduleEmailReminder(text);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -104,13 +105,8 @@ public class LicenceManagement {
         System.out.println("Navigating to the next action...");
     }
 
-    @Test(dependsOnMethods = "executePopUpOrLicence")
-    public void checkAndScheduleEmailReminder() {
+    public void checkAndScheduleEmailReminder(String expiryDateText) {
         try {
-            WebElement expiryDateElement = driver.findElement(By.xpath("//div[3]/div[2]"));
-            String expiryDateText = expiryDateElement.getText().trim();
-            System.out.println("Expiry Date: " + expiryDateText);
-
             // Parse the expiry date string to LocalDate
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z"); // Adjust the format as per your application
             LocalDate expiryDate = LocalDate.parse(expiryDateText, formatter);
@@ -118,26 +114,34 @@ public class LicenceManagement {
             // Calculate reminder dates
             LocalDate reminderDate30Days = expiryDate.minusDays(30);
             LocalDate reminderDate29Days = expiryDate.minusDays(29);
-            
             LocalDate reminderDate15Days = expiryDate.minusDays(15);
 
             // Get today's date
             LocalDate currentDate = LocalDate.now();
 
             // Send reminders if today is the reminder date
-            if (currentDate.equals(reminderDate30Days) || currentDate.equals(reminderDate15Days)||currentDate.equals(reminderDate29Days)) {
-                scheduleEmailReminder(expiryDateText);
+            if (currentDate.equals(reminderDate30Days) || currentDate.equals(reminderDate15Days) || currentDate.equals(reminderDate29Days)) {
+                scheduleEmailReminder(expiryDateText, currentDate, reminderDate30Days, reminderDate29Days, reminderDate15Days);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void scheduleEmailReminder(String expiryDateText) {
+    public void scheduleEmailReminder(String expiryDateText, LocalDate currentDate, LocalDate reminderDate30Days, LocalDate reminderDate29Days, LocalDate reminderDate15Days) {
         try {
             String subject = "License Expiry Reminder";
-            String body = "Your license is expiring on: " + expiryDateText + ". Your SDK will expire after 30 days. Please renew it before then.";
+            String body = "";
 
+            if (currentDate.equals(reminderDate30Days)) {
+                body = "Your license is expiring on: " + expiryDateText + ". Your SDK will expire after 30 days. Please renew it before then.";
+            } else if (currentDate.equals(reminderDate29Days)) {
+                body = "Your license is expiring on: " + expiryDateText + ". Your SDK will expire after 29 days. Please renew it before then.";
+            } else if (currentDate.equals(reminderDate15Days)) {
+                body = "Your license is expiring on: " + expiryDateText + ". Your SDK will expire after 15 days. Please renew it before then.";
+            }
+
+            // Send the email
             EmailSender.sendEmail(REMINDER_EMAIL, subject, body);
         } catch (Exception e) {
             e.printStackTrace();
@@ -152,34 +156,3 @@ public class LicenceManagement {
     }
 }
 
-class EmailSender {
-    public static void sendEmail(String to, String subject, String body) {
-        final String username = "prabhu.m@acviss.com";
-        final String password = "xdqy feic tspf fxxn"; // Replace with your email password
-
-        Properties prop = new Properties();
-        prop.put("mail.smtp.host", "smtp.gmail.com");
-        prop.put("mail.smtp.port", "587");
-        prop.put("mail.smtp.auth", "true");
-        prop.put("mail.smtp.starttls.enable", "true");
-
-        Session session = Session.getInstance(prop, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username, password);
-            }
-        });
-
-        try {
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(username));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            message.setSubject(subject);
-            message.setText(body);
-
-            Transport.send(message);
-            System.out.println("Email sent successfully");
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-    }
-}
