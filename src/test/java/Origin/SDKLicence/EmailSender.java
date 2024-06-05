@@ -11,10 +11,10 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-public class EmailSender {
+class EmailSender {
     public static void sendEmail(String to, String subject, String body) {
-        final String username = "prabhu.m@acviss.com";
-        final String password = "xdqy feic tspf fxxn"; // Replace with your email password
+        final String username = System.getenv("EMAIL_USERNAME");
+        final String password = System.getenv("EMAIL_PASSWORD");
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");

@@ -19,22 +19,18 @@ public class LicenceManagement {
     private WebDriver driver;
     private static boolean loggedIn = false;
     private static final String REMINDER_EMAIL = "prabhu.m@acviss.com"; // Replace with recipient email
-    private static final String FROM_EMAIL = "prabhu.m@acviss.com"; // Replace with your email
-    private static final String EMAIL_PASSWORD = "xdqy feic tspf fxxn"; // Replace with your email password
 
     @BeforeClass
     public void setUp() {
-        // Set up WebDriver
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
-        //  options.addArguments("headless");
+        // options.addArguments("headless");
 
         driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
-        // Login if not already logged in
         if (!loggedIn) {
             try {
                 driver.get("https://localhost:5001/");
@@ -84,8 +80,6 @@ public class LicenceManagement {
 
     public void licence() {
         try {
-            // Implement your license handling logic here
-            // Example: Clicking on license elements and extracting expiry date
             WebElement licenceElement = driver.findElement(By.xpath("//div/div/div/following::*/li[8]/div/div[1]/i[2]"));
             ((JavascriptExecutor) driver).executeScript("arguments[0].click()", licenceElement);
             WebElement navigationItem = driver.findElement(By.xpath("(//span[@class='rz-navigation-item-text'])[26]"));
@@ -94,7 +88,6 @@ public class LicenceManagement {
             String text = expiryElement.getText();
             System.out.println(text);
 
-            // Schedule email reminders
             checkAndScheduleEmailReminder(text);
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,19 +100,14 @@ public class LicenceManagement {
 
     public void checkAndScheduleEmailReminder(String expiryDateText) {
         try {
-            // Parse the expiry date string to LocalDate
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z"); // Adjust the format as per your application
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z");
             LocalDate expiryDate = LocalDate.parse(expiryDateText, formatter);
 
-            // Calculate reminder dates
             LocalDate reminderDate30Days = expiryDate.minusDays(30);
             LocalDate reminderDate29Days = expiryDate.minusDays(29);
             LocalDate reminderDate15Days = expiryDate.minusDays(15);
-
-            // Get today's date
             LocalDate currentDate = LocalDate.now();
 
-            // Send reminders if today is the reminder date
             if (currentDate.equals(reminderDate30Days) || currentDate.equals(reminderDate15Days) || currentDate.equals(reminderDate29Days)) {
                 scheduleEmailReminder(expiryDateText, currentDate, reminderDate30Days, reminderDate29Days, reminderDate15Days);
             }
@@ -141,7 +129,6 @@ public class LicenceManagement {
                 body = "Your license is expiring on: " + expiryDateText + ". Your SDK will expire after 15 days. Please renew it before then.";
             }
 
-            // Send the email
             EmailSender.sendEmail(REMINDER_EMAIL, subject, body);
         } catch (Exception e) {
             e.printStackTrace();
@@ -155,4 +142,5 @@ public class LicenceManagement {
         }
     }
 }
+
 
