@@ -30,7 +30,7 @@ public class LicenceManagement extends Baseclass {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
-         options.addArguments("headless"); // Run in headless mode
+         //options.addArguments("headless"); // Run in headless mode
 
         driver = new ChromeDriver(options);
         driver.manage().window().maximize();
