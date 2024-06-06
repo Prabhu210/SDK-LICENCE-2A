@@ -16,7 +16,6 @@ public class EmailSender {
                 throw new RuntimeException("Email properties file not found");
             }
             emailProperties.load(input);
-            System.out.println("Loaded email.properties: " + emailProperties);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to initialize EmailSender", e);

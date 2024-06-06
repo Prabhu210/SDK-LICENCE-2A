@@ -3,15 +3,12 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="Origin.SDKLicence.LicenceManagement">
+      <class name="Origin.SDKLicence.trial">
         <methods>
-          <include name="licence"/>
           <include name="setUp"/>
-          <include name="handleDialogBox"/>
-          <include name="checkAndScheduleEmailReminder"/>
-          <include name="tearDown"/>
+          <include name="executePopUpOrLicence"/>
         </methods>
-      </class> <!-- Origin.SDKLicence.LicenceManagement -->
+      </class> <!-- Origin.SDKLicence.trial -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->
